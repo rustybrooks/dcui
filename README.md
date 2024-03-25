@@ -1,2 +1,2 @@
 # dcui
-A docker compose TUI thing
+A docker UI thing

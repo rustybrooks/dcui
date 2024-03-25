@@ -1,0 +1,11 @@
+version: '3'
+
+services:
+  busybox1:
+    image: busybox:latest
+
+  busybox2:
+    image: busybox:latest
+
+  busybox3:
+    image: busybox:latest

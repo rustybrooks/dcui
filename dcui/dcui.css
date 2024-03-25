@@ -1,0 +1,45 @@
+Screen {
+    background: $surface-darken-1;
+    layers: normal top;
+}
+
+#panel-view {
+    display: none;
+    scrollbar-gutter: stable;
+    width: auto;
+    /*layer: top;*/
+}
+
+.-show-panel #panel-view {
+    display: block;
+    dock: left;
+    height: 100%;
+    width: auto;
+    min-width: 30;
+    background: #151C25;
+}
+
+.-show-panel #panel-view:focus {
+    background: #252C35;
+}
+
+.-show-panel #panel-view:focus-within {
+    background: #252C35;
+}
+
+Container.overlay {
+    layer: top;
+    width: 95%;
+    height: 95%;
+    align: center middle;
+    border: white;
+    background: $surface;
+}
+
+#horizontal {
+    align: center middle;
+}
+
+.hide {
+    display: none;
+}

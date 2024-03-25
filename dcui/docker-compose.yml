@@ -1,0 +1,11 @@
+version: '3'
+
+services:
+  nginx:
+    image: nginx:latest
+
+  busyboxa:
+    image: busybox:latest
+
+  busyboxb:
+    image: busybox:latest
