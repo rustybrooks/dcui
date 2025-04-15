@@ -68,7 +68,7 @@ class Panes(
 
     BINDINGS = [Binding(key="ctrl+]", action="next_pane()", description="Next pane")]
 
-    selected = reactive.var((0, 0))
+    selected = reactive((0, 0))
 
     def __init__(
         self,
@@ -146,7 +146,11 @@ class Panes(
                 return True
 
             self.selected = sc
-            fn = self.action_splitx if self.grid[sc]["width"] >= self.grid[sc]["height"] else self.action_splity
+            fn = (
+                self.action_splitx
+                if self.grid[sc]["width"] >= self.grid[sc]["height"]
+                else self.action_splity
+            )
             return fn(title=title, content=content)
 
     def recursive_remove(self, remove_index):

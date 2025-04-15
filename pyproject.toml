@@ -1,42 +1,46 @@
-[build-system]
-build-backend = 'setuptools.build_meta'
-requires = [
-    'setuptools >= 58.2.0',
+[project]
+name = "dcui"
+version = "0.0.1"
+description = "DCUI"
+# readme = "README.md"
+packages = [{ include = "dcui" }]
+requires-python = ">3.10,<4"
+
+dependencies = [
+  "textual~=3.0.0",
+  "pyyaml",
+  "rich>=13.9.4",
+  "python-dotenv",
+  "pyte",
 ]
 
-[tool.pylint]
-profile = "black"
-multi_line_output = 3
+[dependency-groups]
+dev = [
+  "textual-dev>=1.7.0",
+]
 
-[tool.isort]
-profile = "black"
-multi_line_output = 3
+[project.scripts]
+dcui= 'dcui.app:main'
 
-[tool.black]
+[tool.ruff]
 line-length = 100
-target-version = ['py38']
-include = '\.pyi?$'
-exclude = '''
-/(
-      \.eggs         # exclude a few common directories in the
-    | \.git          # root of the project
-    | \.hg
-    | \.mypy_cache
-    | \.tox
-    | venv.*
-    | .*\/migrations
-    | _build
-    | buck-out
-    | build
-    | dist
-    | scripts
-    | debian
-    | Pipfile
-    | Pipefile.lock
-    | requirements.txt
-    | Makefile
-    | README.md
-    | __pycache__
-    | \.json
-  )/
-'''
+target-version = "py312"
+
+[tool.ruff.lint]
+ignore = [
+  "F401" # requiring alias or re-export for imported objects
+]
+
+[tool.mypy]
+python_version = "3.12"
+warn_return_any = true
+warn_unused_configs = true
+check_untyped_defs = true
+
+exclude = [
+  "venv"
+]
+
+[build-system]
+requires = ["hatchling"]
+build-backend = "hatchling.build"

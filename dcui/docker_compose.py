@@ -66,8 +66,12 @@ class DockerCompose:
 
     async def ps(self):
         command = self.prefix + ["ps", "--format=json"]
-        data = await run_async(command)
-        return json.loads(data)
+        lines = await run_async(command)
+        data = {}
+        for line in lines.splitlines():
+            print(line)
+            line_data = json.loads(line)
+            data[line_data["Name"]] = line_data
 
     def logs(self, services=None, tail=True, callback=None, return_command=True):
         command = self.prefix + ["logs"]

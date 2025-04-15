@@ -36,9 +36,14 @@ def main():
         # Reload arguments to override config file values with command line values
         args = parser.parse_args()
 
+    print(args.docker_compose)
+    if not args.docker_compose:
+        parser.print_help()
+        sys.exit(1)
+
     d = DCUIApp(
         docker_compose_files=[os.path.expanduser(f) for f in args.docker_compose],
-        hook_file=os.path.expanduser(args.hook_file),
+        # hook_file=os.path.expanduser(args.hook_file),
     )
     return d
     # d.run()
@@ -48,6 +53,7 @@ if __name__ == "__main__":
     main().run()
 elif __name__ == "dcui.app":
     # This nonsense is so I can run in with textual run --dev "dcui.app:test_app"
-    sys.argv = sys.argv[-1].split(" ")
+    # sys.argv = sys.argv[-1].split(" ")
     print(sys.argv)
-    test_app = main()
+    # test_app = main()
+    main().run()
