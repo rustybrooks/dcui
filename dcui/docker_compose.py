@@ -73,6 +73,8 @@ class DockerCompose:
             line_data = json.loads(line)
             data[line_data["Name"]] = line_data
 
+        return data
+
     def logs(self, services=None, tail=True, callback=None, return_command=True):
         command = self.prefix + ["logs"]
         if tail:

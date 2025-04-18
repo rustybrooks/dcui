@@ -558,19 +558,19 @@ def format_port(port):
 
 
 class DockerComposeController(DataTable):
-    # DEFAULT_CSS = """
-    #     DockerComposeController {
-    #         border: solid $secondary-darken-3;
-    #
-    #         width: 100%;
-    #         height: auto;
-    #     }
-    #
-    #     .selected {
-    #         border: solid $accent;
-    #         background: $accent 30%;
-    #     }
-    # """
+    DEFAULT_CSS = """
+        DockerComposeController {
+            border: solid $secondary-darken-3;
+
+            width: 100%;
+            height: auto;
+        }
+
+        .selected {
+            border: solid $accent;
+            background: $accent 30%;
+        }
+    """
 
     # BINDINGS = [
     #     ("m", "toggle_columns()", "Toggle"),
@@ -597,6 +597,9 @@ class DockerComposeController(DataTable):
             ["service", "status", "name", "command", "ports"],
         ]
         self.column_set_index = 0
+
+        for column in self.column_sets[0]:
+            self.add_column(column, key=column)
 
     def watch_selected(self, selected: bool) -> None:
         self.set_class(selected, "selected")
@@ -626,19 +629,19 @@ class DockerComposeController(DataTable):
         data = await self.docker_compose.ps()
 
         row_map = {}
-        for k, v in self.data.items():
-            row_map[v[0]] = (k, v)
-            v[1] = ""
+        for k, row in self.rows.items():
+            row_map[self.get_cell(k, "service")] = k
+            self.update_cell(k, "status", "")
 
         for el in data:
             service = el["Name"]
             service = "-".join(service.split("-")[1:-1])
 
             if service in row_map:
-                row_map[service][1][1] = el["State"]
-                row_map[service][1][2] = el["Name"]
-                row_map[service][1][3] = el["Command"][:20]
-                row_map[service][1][4] = " ".join([format_port(p) for p in el["Publishers"] or []])
+                self.update_cell(row_map[service], "status", el["State"])
+                self.update_cell(row_map[service], "name", el["Name"])
+                self.update_cell(row_map[service], "command",el["Command"][:20])
+                self.update_cell(row_map[service], "port", " ".join([format_port(p) for p in el["Publishers"] or []]))
 
         self._require_update_dimensions = True
         self.refresh()
