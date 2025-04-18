@@ -5,6 +5,7 @@ from rich.segment import Segment
 from textual import events
 from textual.geometry import Size
 from textual.scroll_view import ScrollView
+from textual.strip import Strip
 
 from ..utils import stream_stdout_and_stderr
 import signal
@@ -54,7 +55,7 @@ class Logs(ScrollView):
         self._content_width = max(new_content_width, self._content_width)
         self.virtual_size = Size(self._content_width, len(self.data))
 
-    def render_line(self, y: int) -> list[Segment]:
+    def render_line(self, y: int) -> Strip:
         width, height = self.size
         scroll_x, scroll_y = self.scroll_offset
         try:
@@ -62,10 +63,10 @@ class Logs(ScrollView):
         except IndexError:
             line = ""
 
-        text = line[scroll_x : scroll_x + width]
+        text = line[scroll_x: scroll_x + width]
         missing_len = max(0, width - len(text))
 
-        return [Segment(text + " " * missing_len, self.rich_style)]
+        return Strip([Segment(text + " " * missing_len, self.rich_style)])
 
 
 class CommandLogger(Logs):
@@ -99,12 +100,14 @@ class CommandLogger(Logs):
         print("running self.command", self.command)
         self.add_log(f"running {self.command}")
         self.process = stream_stdout_and_stderr(self.command, callback=lambda a, b: self.add_log(b.strip(), source=a))
+        print("before set callback timer")
         self._callback_timer = self.set_interval(1, self.check_process, name="check_process")
+        print("after set callback timer")
         self.focus()
 
     def on_key(self, event: events.Key) -> None:
         # suppress any keys the parent uses - fix this to be dynamic
-        if event.key not in ["q", "t", "m", "l", "s", "r", "u", "d", "b", "ctrl+l", "ctrl+d", "ctrl+u", "ctrl+b"]:
+        if event.key not in ["x", "q", "t", "m", "l", "s", "r", "u", "d", "b", "ctrl+l", "ctrl+d", "ctrl+u", "ctrl+b"]:
             return
 
         event.stop()
@@ -130,4 +133,4 @@ class CommandLogger(Logs):
             if self.exit_message:
                 self.add_log("Press escape to close")
             # self.process = None
-            await self._callback_timer.stop()
+            self._callback_timer.stop()

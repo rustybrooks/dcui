@@ -67,11 +67,10 @@ class DockerCompose:
     async def ps(self):
         command = self.prefix + ["ps", "--format=json"]
         lines = await run_async(command)
-        data = {}
+        data = []
         for line in lines.splitlines():
-            print(line)
             line_data = json.loads(line)
-            data[line_data["Name"]] = line_data
+            data.append(line_data)
 
         return data
 

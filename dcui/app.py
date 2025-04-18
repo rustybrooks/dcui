@@ -52,8 +52,10 @@ def main():
 if __name__ == "__main__":
     main().run()
 elif __name__ == "dcui.app":
+    print("argv", repr(sys.argv))
     # This nonsense is so I can run in with textual run --dev "dcui.app:test_app"
     # sys.argv = sys.argv[-1].split(" ")
-    print(sys.argv)
+    # sys.argv = sys.argv[1:]
+    print("argv after", sys.argv)
     # test_app = main()
     main().run()

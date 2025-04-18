@@ -8,7 +8,7 @@ from textual.containers import Container, Vertical, Horizontal
 from textual.driver import Driver
 from textual.reactive import var
 from textual.screen import Screen
-from textual.widgets import Footer, Header
+from textual.widgets import DataTable, Footer, Header
 
 from . import docker_compose
 from .components.docker_table import DockerComposeController
@@ -63,14 +63,14 @@ class DockerComposePanel(Vertical):
     def on_click(self, event: events.Click):
         clicked = self.screen.get_widget_at(event.screen_x, event.screen_y)[0]
         if isinstance(clicked, DockerComposeController):
-            self.change_selected(clicked)
+            print(2, self.change_selected(clicked))
         elif clicked == self:
-            self.docker_compose.focus()
+            print(1, self.docker_compose.focus())
 
 
 class DockerScreen(Screen):
     BINDINGS = [
-        # ("x", "remove_pane", "Remove"),
+        ("x", "remove_pane", "Remove"),
         ("t", "toggle_panel", "Toggle Pane"),
         ("u", "service_up", "Up"),
         ("d", "service_down", "Down"),
@@ -86,7 +86,7 @@ class DockerScreen(Screen):
         ("f2", "split_horizontal", "SplitX"),
         ("f3", "split_vertical", "SplitY"),
         # ("ctrl+]", "next_pane", "Next"),
-        ("ctrl+_", "swap_panel", "Swap"),
+        ("ctrl+minus", "swap_panel", "Swap"),
     ]
     logger = None
     show_panel = var(True)
@@ -112,7 +112,10 @@ class DockerScreen(Screen):
         self.container = Panes(id="container")
         self.overlay = Container(classes="overlay hide")
         self.panel = DockerComposePanel(
-            *[DockerComposeController(docker_file=df, logger=self.logger) for df in self.docker_compose_files],
+            *[
+                DockerComposeController(docker_file=df, logger=self.logger)
+                for df in self.docker_compose_files
+            ],
             id="panel-view",
         )
 
@@ -130,18 +133,13 @@ class DockerScreen(Screen):
         print("on key", event)
 
     def action_swap_panel(self):
-        try:
-            container_focused = next(x for x in self.container.walk_children() if x.has_focus)
-        except StopIteration:
-            container_focused = False
-
-        if container_focused:
+        if self.focused.__class__ in [DockerComposePanel, DockerComposeController]:
+            self.container.pane_focus()
+            print("focus container")
+        else:
             # self.panel.focus()
             self.panel.docker_compose.focus()
             print("focus panel")
-        else:
-            self.container.pane_focus()
-            print("focus container")
 
     def action_remove_pane(self):
         self.container.remove_pane()
@@ -160,20 +158,23 @@ class DockerScreen(Screen):
         self.show_panel = not self.show_panel
 
     async def action_service_logs(self) -> None:
-        service = self.panel.docker_compose.selected_row[0]
+        service = self.panel.docker_compose.selected_service
         self.container.add_pane(
             title=f"{service} logs",
             content=CommandLogger(
-                self.panel.docker_compose.docker_compose.logs(services=[service]), exit_message=False
+                self.panel.docker_compose.docker_compose.logs(services=[service]),
+                exit_message=False,
             ),
         )
         global_log(f"log_command done {service}")
 
     async def action_service_shell(self) -> None:
-        service = self.panel.docker_compose.selected_row[0]
+        service = self.panel.docker_compose.selected_service
         self.container.add_pane(
             title=f"{service} shell",
-            content=InteractiveShell(self.panel.docker_compose.docker_compose.shell(service), exit_message=False),
+            content=InteractiveShell(
+                self.panel.docker_compose.docker_compose.shell(service), exit_message=False
+            ),
         )
         # await self.container.mount(InteractiveShell(["bash"]))
 
@@ -181,10 +182,12 @@ class DockerScreen(Screen):
         await self.single_gated_action_stop()
 
     async def action_service_run(self) -> None:
-        service = self.panel.docker_compose.selected_row[0]
+        service = self.panel.docker_compose.selected_service
         self.container.add_pane(
             title=f"{service} run",
-            content=InteractiveShell(self.panel.docker_compose.docker_compose.run(service), exit_message=False),
+            content=InteractiveShell(
+                self.panel.docker_compose.docker_compose.run(service), exit_message=False
+            ),
         )
 
     def remove_temp_windows(self):
@@ -210,7 +213,7 @@ class DockerScreen(Screen):
         self.action_running = False
 
     async def action_service_up(self) -> None:
-        service = self.panel.docker_compose.selected_row[0]
+        service = self.panel.docker_compose.selected_service
         await self.single_gated_action(
             InteractiveShell(
                 self.panel.docker_compose.docker_compose.up(services=[service], detach=True),
@@ -220,7 +223,7 @@ class DockerScreen(Screen):
         )
 
     async def action_service_down(self) -> None:
-        service = self.panel.docker_compose.selected_row[0]
+        service = self.panel.docker_compose.selected_service
         await self.single_gated_action(
             InteractiveShell(
                 self.panel.docker_compose.docker_compose.stop(services=[service]),
@@ -230,10 +233,12 @@ class DockerScreen(Screen):
         )
 
     async def action_service_build(self) -> None:
-        service = self.panel.docker_compose.selected_row[0]
+        service = self.panel.docker_compose.selected_service
         await self.single_gated_action(
             CommandLogger(
-                self.panel.docker_compose.docker_compose.build(services=[service], with_password=True),
+                self.panel.docker_compose.docker_compose.build(
+                    services=[service], with_password=True
+                ),
                 exit_command=self.single_gated_service_exit(),
             )
         )

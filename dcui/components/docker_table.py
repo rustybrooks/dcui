@@ -7,7 +7,6 @@ from .logs import Logs
 from ..docker_compose import DockerCompose
 
 
-
 # CursorType = Literal["cell", "row", "column"]
 # CELL: CursorType = "cell"
 # CellType = TypeVar("CellType")
@@ -586,11 +585,19 @@ class DockerComposeController(DataTable):
         id: str | None = None,
         classes: str | None = None,
     ) -> None:
-        super().__init__(name=name, id=id, classes=classes)
+        super().__init__(
+            name=name,
+            id=id,
+            classes=classes,
+            cursor_type="row",
+            zebra_stripes=True,
+            cursor_foreground_priority="renderable",
+        )
         self.logger = logger
         self.docker_file = docker_file
         self.docker_compose_parsed = {}
         self.docker_compose = DockerCompose(docker_file)
+        self.selected_service = None
 
         self.column_sets = [
             ["service", "status"],
@@ -601,19 +608,19 @@ class DockerComposeController(DataTable):
         for column in self.column_sets[0]:
             self.add_column(column, key=column)
 
-    def watch_selected(self, selected: bool) -> None:
-        self.set_class(selected, "selected")
-        self._clear_caches()
+    # def watch_selected(self, selected: bool) -> None:
+    #     self.set_class(selected, "selected")
+    #     self._clear_caches()
 
-    def action_toggle_columns(self):
-        self.column_set_index = (self.column_set_index + 1) % len(self.column_sets)
-        self.display_columns = self.column_sets[self.column_set_index]
-        self.refresh()
-        self._clear_caches()
+    # def action_toggle_columns(self):
+    #     self.column_set_index = (self.column_set_index + 1) % len(self.column_sets)
+    #     self.display_columns = self.column_sets[self.column_set_index]
+    #     self.refresh()
+    #     self._clear_caches()
 
     def on_mount(self) -> None:
-        self.add_columns("service", "status", "name", "command", "ports")
-        self.display_columns = self.column_sets[self.column_set_index]
+        # self.add_columns("service", "status", "name", "command", "ports")
+        # self.display_columns = self.column_sets[self.column_set_index]
         self.call_later(self.load_docker)
         self.call_later(self.update_docker_ps)
         self.set_interval(5, self.update_docker_ps)
@@ -622,8 +629,9 @@ class DockerComposeController(DataTable):
         data = self.docker_compose.load_docker_compose(self.docker_file)
 
         self.docker_compose_parsed = data
-        # print(self.docker_file, data)
-        self.add_rows([[x, "", "", "", ""] for x in self.docker_compose_parsed["services"]])
+        rows = [[x, ""] for x in self.docker_compose_parsed["services"]]
+        self.selected_service = rows[0][0]
+        self.add_rows(rows)
 
     async def update_docker_ps(self):
         data = await self.docker_compose.ps()
@@ -639,10 +647,13 @@ class DockerComposeController(DataTable):
 
             if service in row_map:
                 self.update_cell(row_map[service], "status", el["State"])
-                self.update_cell(row_map[service], "name", el["Name"])
-                self.update_cell(row_map[service], "command",el["Command"][:20])
-                self.update_cell(row_map[service], "port", " ".join([format_port(p) for p in el["Publishers"] or []]))
+                # self.update_cell(row_map[service], "name", el["Name"])
+                # self.update_cell(row_map[service], "command",el["Command"][:20])
+                # self.update_cell(row_map[service], "port", " ".join([format_port(p) for p in el["Publishers"] or []]))
 
         self._require_update_dimensions = True
         self.refresh()
         self._clear_caches()
+
+    def on_data_table_row_highlighted(self, message: DataTable.RowHighlighted) -> None:
+        self.selected_service = self.get_cell(message.row_key, "service")

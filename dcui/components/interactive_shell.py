@@ -8,6 +8,7 @@ import subprocess
 import pyte
 from textual import events
 from textual.app import App
+from textual.content import Content
 from textual.widgets import Static
 
 
@@ -42,6 +43,7 @@ class InteractiveShell(Static):
         self.exit_command = exit_command
         self.exit_message = exit_message
         self._focus = focus
+        self.process = None
 
     async def on_mount(self):
         if self._focus:
@@ -50,10 +52,11 @@ class InteractiveShell(Static):
         self.call_later(self._run)
 
     def on_key(self, event: events.Key) -> None:
+        print("onkey", event.key)
         if event.key in ["ctrl+]", "ctrl+_"]:
             return
-        elif event.char:
-            os.write(self._pty, event.char.encode("utf-8"))
+        elif event.character:
+            os.write(self._pty, event.character.encode("utf-8"))
         elif event.key == "up":
             os.write(self._pty, "".join([chr(0x1B), chr(0x5B), chr(0x41)]).encode("utf-8"))
         elif event.key == "down":
@@ -66,6 +69,7 @@ class InteractiveShell(Static):
         event.stop()
 
     def on_unmount(self):
+        print("unmount?")
         if self.process:
             print("terminate", self.process.pid, self.process)
             try:
@@ -85,6 +89,7 @@ class InteractiveShell(Static):
         )
         self._screen = pyte.Screen(self.size[1], self.size[0])
         self._stream = pyte.Stream(self._screen)
+        print("await run_check")
         await self._run_check()
 
     async def _run_check(self):
@@ -103,7 +108,7 @@ class InteractiveShell(Static):
             print(exit_message)
             screen = [x for x in self._screen.display if x.strip()] + exit_message
             print(screen)
-            self.update("\n".join(screen))
+            self.update(Content("\n".join(screen)))
             self.refresh()
             return
 
@@ -118,7 +123,7 @@ class InteractiveShell(Static):
             # print(repr(self._screen.buffer))
 
             self._stream.feed(output.decode())
-            self.update("\n".join(self._screen.display))
+            self.update(Content("\n".join(self._screen.display)))
             self._screen.dirty.clear()
         else:
             await asyncio.sleep(1 / 100.0)

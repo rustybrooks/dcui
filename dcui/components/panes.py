@@ -34,7 +34,7 @@ class Panel(Widget):
         self.content = content
 
     def compose(self):
-        yield Static(renderable=self.title, classes="title")
+        yield Static("", name=self.title, classes="title")
         yield self.content
 
     def is_scrollable(self) -> bool:
