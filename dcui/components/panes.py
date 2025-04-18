@@ -34,7 +34,7 @@ class Panel(Widget):
         self.content = content
 
     def compose(self):
-        yield Static("", name=self.title, classes="title")
+        yield Static(self.title, name=self.title, classes="title")
         yield self.content
 
     def is_scrollable(self) -> bool:
@@ -66,7 +66,9 @@ class Panes(
         }}
     """
 
-    BINDINGS = [Binding(key="ctrl+]", action="next_pane()", description="Next pane")]
+    BINDINGS = [
+        Binding(key="ctrl+right_square_bracket", action="next_pane()", description="Next pane")
+    ]
 
     selected = reactive((0, 0))
 

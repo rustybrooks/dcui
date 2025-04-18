@@ -36,6 +36,10 @@ class DebugScreen(Screen):
 
 
 class DockerComposePanel(Vertical):
+    # BINDINGS = (
+    #     Binding("ctrl+right_square_bracket", "next_pane", "Next Pane", priority=True),
+    # )
+
     docker_compose = None
     docker_composes = None
 
@@ -69,23 +73,23 @@ class DockerComposePanel(Vertical):
 
 class DockerScreen(Screen):
     BINDINGS = [
-        ("x", "remove_pane", "Remove"),
-        ("t", "toggle_panel", "Toggle Pane"),
-        ("u", "service_up", "Up"),
-        ("d", "service_down", "Down"),
-        ("l", "service_logs", "Logs"),
-        ("b", "service_build", "Build"),
-        ("s", "service_shell", "Shell"),
-        ("r", "service_run", "Run"),
-        ("ctrl+u", "up", "Up all"),
-        ("ctrl+d", "down", "Down all"),
-        ("ctrl+l", "logs", "Logs all"),
-        ("ctrl+b", "build", "Build all"),
+        Binding("x", "remove_pane", "Remove"),
+        Binding("t", "toggle_panel", "Toggle Pane"),
+        Binding("u", "service_up", "Up"),
+        Binding("d", "service_down", "Down"),
+        Binding("l", "service_logs", "Logs"),
+        Binding("b", "service_build", "Build"),
+        Binding("s", "service_shell", "Shell"),
+        Binding("r", "service_run", "Run"),
+        Binding("ctrl+u", "up", "Up all"),
+        Binding("ctrl+d", "down", "Down all"),
+        Binding("ctrl+l", "logs", "Logs all"),
+        Binding("ctrl+b", "build", "Build all"),
         Binding(key="escape", action="close_overlay", show=False, description="close overlay"),
-        ("f2", "split_horizontal", "SplitX"),
-        ("f3", "split_vertical", "SplitY"),
-        ("ctrl+right_square_bracket", "next_pane", "Next"),
-        ("ctrl+minus", "swap_panel", "Swap"),
+        Binding("f2", "split_horizontal", "SplitX", priority=True),
+        Binding("f3", "split_vertical", "SplitY", priority=True),
+        Binding("ctrl+right_square_bracket", "next_pane", "Next Pane", priority=False),
+        Binding("ctrl+underscore", "swap_panel", "Swap", priority=True),
     ]
     logger = None
     show_panel = var(True)
@@ -128,13 +132,15 @@ class DockerScreen(Screen):
 
         yield Footer()
 
-    # def on_key(self, event: events.Key) -> None:
-    #     print("on key DS", event)
+    def on_key(self, event: events.Key) -> None:
+        print("on key DS", event)
 
     def action_swap_panel(self):
         if self.focused.__class__ in [DockerComposePanel, DockerComposeController]:
+            print("swap to panes")
             self.container.pane_focus()
         else:
+            print("swap to docker compose")
             self.panel.docker_compose.focus()
 
     def action_remove_pane(self):
@@ -169,7 +175,8 @@ class DockerScreen(Screen):
         self.container.add_pane(
             title=f"{service} shell",
             content=InteractiveShell(
-                self.panel.docker_compose.docker_compose.shell(service), exit_message=False
+                self.panel.docker_compose.docker_compose.shell(service),
+                exit_message=False,
             ),
         )
         # await self.container.mount(InteractiveShell(["bash"]))

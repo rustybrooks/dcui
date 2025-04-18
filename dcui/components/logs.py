@@ -23,6 +23,7 @@ class Logs(ScrollView):
             id=id,
             classes=classes,
         )
+        print(f"new logs name={name}")
         self.data = []
         self._require_update_dimensions: bool = False
         self._new_rows: set[int] = set()
@@ -100,9 +101,7 @@ class CommandLogger(Logs):
         print("running self.command", self.command)
         self.add_log(f"running {self.command}")
         self.process = stream_stdout_and_stderr(self.command, callback=lambda a, b: self.add_log(b.strip(), source=a))
-        print("before set callback timer")
         self._callback_timer = self.set_interval(1, self.check_process, name="check_process")
-        print("after set callback timer")
         self.focus()
 
     def on_key(self, event: events.Key) -> None:
