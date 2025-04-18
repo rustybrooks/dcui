@@ -137,7 +137,6 @@ class Panes(
             return True
 
         fn = self.action_splitx if self.last_split == "horizontal" else self.action_splity
-        print("split", self.last_split, fn)
         did_split = fn(title=title, content=content)
 
         if not did_split:
@@ -185,10 +184,8 @@ class Panes(
 
         if isinstance(removei, list):
             minrow = min([x[0] for x in recursive_index])
-            mincol = min([x[1] for x in recursive_index])
         else:
             minrow = removei[0]
-            mincol = removei[1]
 
         if keepi[0] == minrow:
             # same row, horizontal split
@@ -199,7 +196,6 @@ class Panes(
             keep["height"] = keep["height"] + sum([r["height"] for r in removed])
             keep["object"].set_styles(f"row-span: {keep['height']};")
 
-        print("after", keep["width"], keep["height"])
         split2 = self.find_split(split, self.splits)
         i = split2.index(split)
         split2[i] = keepi
@@ -305,11 +301,9 @@ class Panes(
         self.selected = keys[(i + 1) % len(keys)]
 
     def pane_focus(self):
-        print(self.grid)
         if not self.grid:
             return
 
-        print(self.selected)
         sel = self.grid[self.selected]["object"]
         if sel.content.can_focus:
             sel.content.focus()

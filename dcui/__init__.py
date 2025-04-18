@@ -40,16 +40,13 @@ class DockerComposePanel(Vertical):
     docker_composes = None
 
     def on_mount(self, _: events.Mount) -> None:
-        print("docker compose panel on mount")
         self.docker_composes = [d for d in self.query(DockerComposeController)]
 
         if self.docker_composes:
-            print("select it", self.docker_compose)
             self.change_selected(self.docker_composes[0])
             self.docker_compose.watch_selected(True)
 
     def change_selected(self, new_selected):
-        print("new selected", new_selected)
         if self.docker_compose:
             self.docker_compose.selected = False
 
@@ -60,15 +57,14 @@ class DockerComposePanel(Vertical):
     def action_next_pane(self):
         index = self.docker_composes.index(self.docker_compose)
         next = self.docker_composes[(index + 1) % len(self.docker_composes)]
-        print("action next pane", index, next)
         self.change_selected(next)
 
     def on_click(self, event: events.Click):
         clicked = self.screen.get_widget_at(event.screen_x, event.screen_y)[0]
         if isinstance(clicked, DockerComposeController):
-            print(2, self.change_selected(clicked))
+            self.change_selected(clicked)
         elif clicked == self:
-            print(1, self.docker_compose.focus())
+            self.docker_compose.focus()
 
 
 class DockerScreen(Screen):
@@ -132,20 +128,16 @@ class DockerScreen(Screen):
 
         yield Footer()
 
-    def on_key(self, event: events.Key) -> None:
-        print("on key DS", event)
+    # def on_key(self, event: events.Key) -> None:
+    #     print("on key DS", event)
 
     def action_swap_panel(self):
         if self.focused.__class__ in [DockerComposePanel, DockerComposeController]:
             self.container.pane_focus()
-            print("focus container")
         else:
-            # self.panel.focus()
             self.panel.docker_compose.focus()
-            print("focus panel")
 
     def action_remove_pane(self):
-        print("action remove_pane")
         self.container.remove_pane()
 
     def action_split_horizontal(self):
@@ -279,7 +271,6 @@ class DockerScreen(Screen):
         )
 
     def action_next_pane(self):
-        print("DS next pane")
         self.panel.action_next_pane()
 
 
@@ -313,7 +304,6 @@ class DCUIApp(App):
         super().__init__(driver_class=driver_class, css_path=css_path, watch_css=watch_css)
 
     def on_mount(self):
-        print("hook file")
         self.hooks = Hooks(self.hook_file or None)
         self.docker_screen.hooks = self.hooks
         self.hooks.execute("pre_startup")
