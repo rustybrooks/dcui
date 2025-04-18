@@ -168,7 +168,9 @@ class Panes(
             return sum([self.recursive_flatten(el) for el in remove_index], [])
 
     def remove_pane(self):
+        print("remove_pane", len(list(self.grid.keys())))
         if len(list(self.grid.keys())) == 1:
+            self.recursive_remove(self.selected)
             return
 
         split = self.find_split(self.selected, self.splits)

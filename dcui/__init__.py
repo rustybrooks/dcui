@@ -36,8 +36,6 @@ class DebugScreen(Screen):
 
 
 class DockerComposePanel(Vertical):
-    BINDINGS = [Binding(key="ctrl+]", action="next_pane()", description="Next pane")]
-
     docker_compose = None
     docker_composes = None
 
@@ -46,18 +44,23 @@ class DockerComposePanel(Vertical):
         self.docker_composes = [d for d in self.query(DockerComposeController)]
 
         if self.docker_composes:
-            self.docker_compose = self.docker_composes[0]
-            self.docker_compose.focus()
-            self.docker_compose.selected = True
+            print("select it", self.docker_compose)
+            self.change_selected(self.docker_composes[0])
+            self.docker_compose.watch_selected(True)
 
     def change_selected(self, new_selected):
-        self.docker_compose.selected = False
+        print("new selected", new_selected)
+        if self.docker_compose:
+            self.docker_compose.selected = False
+
         self.docker_compose = new_selected
         self.docker_compose.selected = True
+        self.docker_compose.focus()
 
     def action_next_pane(self):
         index = self.docker_composes.index(self.docker_compose)
         next = self.docker_composes[(index + 1) % len(self.docker_composes)]
+        print("action next pane", index, next)
         self.change_selected(next)
 
     def on_click(self, event: events.Click):
@@ -85,7 +88,7 @@ class DockerScreen(Screen):
         Binding(key="escape", action="close_overlay", show=False, description="close overlay"),
         ("f2", "split_horizontal", "SplitX"),
         ("f3", "split_vertical", "SplitY"),
-        # ("ctrl+]", "next_pane", "Next"),
+        ("ctrl+right_square_bracket", "next_pane", "Next"),
         ("ctrl+minus", "swap_panel", "Swap"),
     ]
     logger = None
@@ -130,7 +133,7 @@ class DockerScreen(Screen):
         yield Footer()
 
     def on_key(self, event: events.Key) -> None:
-        print("on key", event)
+        print("on key DS", event)
 
     def action_swap_panel(self):
         if self.focused.__class__ in [DockerComposePanel, DockerComposeController]:
@@ -142,6 +145,7 @@ class DockerScreen(Screen):
             print("focus panel")
 
     def action_remove_pane(self):
+        print("action remove_pane")
         self.container.remove_pane()
 
     def action_split_horizontal(self):
@@ -273,6 +277,10 @@ class DockerScreen(Screen):
                 exit_command=self.single_gated_service_exit(),
             )
         )
+
+    def action_next_pane(self):
+        print("DS next pane")
+        self.panel.action_next_pane()
 
 
 class DCUIApp(App):

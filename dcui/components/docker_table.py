@@ -565,7 +565,7 @@ class DockerComposeController(DataTable):
             height: auto;
         }
 
-        .selected {
+        DockerComposeController.selected {
             border: solid $accent;
             background: $accent 30%;
         }
@@ -575,7 +575,7 @@ class DockerComposeController(DataTable):
     #     ("m", "toggle_columns()", "Toggle"),
     # ]
 
-    selected = Reactive(True)
+    selected = Reactive(False)
 
     def __init__(
         self,
@@ -608,9 +608,13 @@ class DockerComposeController(DataTable):
         for column in self.column_sets[0]:
             self.add_column(column, key=column)
 
-    # def watch_selected(self, selected: bool) -> None:
-    #     self.set_class(selected, "selected")
-    #     self._clear_caches()
+    def __repr__(self):
+        return f"DockerComposeController(name={self.name}, file={self.docker_file})"
+
+    def watch_selected(self, selected: bool) -> None:
+        print("watch selected", selected)
+        self.set_class(selected, "selected")
+        self._clear_caches()
 
     # def action_toggle_columns(self):
     #     self.column_set_index = (self.column_set_index + 1) % len(self.column_sets)
