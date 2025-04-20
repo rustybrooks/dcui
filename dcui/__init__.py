@@ -8,9 +8,8 @@ from textual.containers import Container, Vertical, Horizontal
 from textual.driver import Driver
 from textual.reactive import var
 from textual.screen import Screen
-from textual.widgets import DataTable, Footer, Header
+from textual.widgets import Footer, Header
 
-from . import docker_compose
 from .components.docker_table import DockerComposeController
 from .components.interactive_shell import InteractiveShell
 from .components.logs import Logs, CommandLogger
@@ -60,8 +59,8 @@ class DockerComposePanel(Vertical):
 
     def action_next_pane(self):
         index = self.docker_composes.index(self.docker_compose)
-        next = self.docker_composes[(index + 1) % len(self.docker_composes)]
-        self.change_selected(next)
+        next_pane = self.docker_composes[(index + 1) % len(self.docker_composes)]
+        self.change_selected(next_pane)
 
     def on_click(self, event: events.Click):
         clicked = self.screen.get_widget_at(event.screen_x, event.screen_y)[0]
@@ -73,8 +72,7 @@ class DockerComposePanel(Vertical):
 
 class DockerScreen(Screen):
     BINDINGS = [
-        Binding("x", "remove_pane", "Remove"),
-        Binding("t", "toggle_panel", "Toggle Pane"),
+        # Binding("t", "toggle_panel", "Toggle Pane"),
         Binding("u", "service_up", "Up"),
         Binding("d", "service_down", "Down"),
         Binding("l", "service_logs", "Logs"),
@@ -85,10 +83,11 @@ class DockerScreen(Screen):
         Binding("ctrl+d", "down", "Down all"),
         Binding("ctrl+l", "logs", "Logs all"),
         Binding("ctrl+b", "build", "Build all"),
+        Binding("ctrl+right_square_bracket", "next_pane", "Next Pane"),
         Binding(key="escape", action="close_overlay", show=False, description="close overlay"),
         Binding("f2", "split_horizontal", "SplitX", priority=True),
         Binding("f3", "split_vertical", "SplitY", priority=True),
-        Binding("ctrl+right_square_bracket", "next_pane", "Next Pane", priority=False),
+        Binding("ctrl+w", "remove_pane", "Remove", priority=True),
         Binding("ctrl+underscore", "swap_panel", "Swap", priority=True),
     ]
     logger = None
@@ -101,9 +100,9 @@ class DockerScreen(Screen):
     action_running = False
     panel = None
 
-    def __init__(self, hooks=None):
+    def __init__(self, action_hooks=None):
         super().__init__()
-        self.hooks = hooks
+        self.action_hooks = action_hooks
 
     def set_docker_compose_files(self, docker_compose_files):
         self.docker_compose_files = docker_compose_files
@@ -132,7 +131,8 @@ class DockerScreen(Screen):
 
         yield Footer()
 
-    def on_key(self, event: events.Key) -> None:
+    @classmethod
+    def on_key(cls, event: events.Key) -> None:
         print("on key DS", event)
 
     def action_swap_panel(self):
@@ -258,7 +258,7 @@ class DockerScreen(Screen):
 
     async def action_up(self):
         self.remove_temp_windows()
-        self.hooks.execute("pre_up")
+        self.action_hooks.execute("pre_up")
         await self.single_gated_action(
             InteractiveShell(
                 self.panel.docker_compose.docker_compose.up(detach=True),
@@ -266,7 +266,7 @@ class DockerScreen(Screen):
                 focus=False,
             )
         )
-        self.hooks.execute("post_up")
+        self.action_hooks.execute("post_up")
 
     async def action_build(self):
         self.remove_temp_windows()
@@ -300,8 +300,9 @@ class DCUIApp(App):
     ):
         self.hook_file = hook_file
         self.debug_screen = DebugScreen()
-        self.docker_screen = DockerScreen(hooks=None)
+        self.docker_screen = DockerScreen(action_hooks=None)
         self.docker_screen.set_docker_compose_files(docker_compose_files or [])
+        self.action_hooks = Hooks(self.hook_file or None)
 
         self.SCREENS = {
             "debug": self.debug_screen,
@@ -311,9 +312,8 @@ class DCUIApp(App):
         super().__init__(driver_class=driver_class, css_path=css_path, watch_css=watch_css)
 
     def on_mount(self):
-        self.hooks = Hooks(self.hook_file or None)
-        self.docker_screen.hooks = self.hooks
-        self.hooks.execute("pre_startup")
+        self.docker_screen.action_hooks = self.action_hooks
+        self.action_hooks.execute("pre_startup")
 
         self.push_screen(self.debug_screen)
         self.push_screen(self.docker_screen)
