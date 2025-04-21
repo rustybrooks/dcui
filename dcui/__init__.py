@@ -100,9 +100,10 @@ class DockerScreen(Screen):
     action_running = False
     panel = None
 
-    def __init__(self, action_hooks=None):
+    def __init__(self, action_hooks=None, skip_service_regex=None):
         super().__init__()
         self.action_hooks = action_hooks
+        self.skip_service_regex = skip_service_regex
 
     def set_docker_compose_files(self, docker_compose_files):
         self.docker_compose_files = docker_compose_files
@@ -115,7 +116,9 @@ class DockerScreen(Screen):
         self.overlay = Container(classes="overlay hide")
         self.panel = DockerComposePanel(
             *[
-                DockerComposeController(docker_file=df, logger=self.logger)
+                DockerComposeController(
+                    docker_file=df, logger=self.logger, skip_service_regex=self.skip_service_regex
+                )
                 for df in self.docker_compose_files
             ],
             id="panel-view",
@@ -297,10 +300,11 @@ class DCUIApp(App):
         css_path: CSSPathType = None,
         watch_css: bool = False,
         hook_file=None,
+        skip_service_regex=None,
     ):
         self.hook_file = hook_file
         self.debug_screen = DebugScreen()
-        self.docker_screen = DockerScreen(action_hooks=None)
+        self.docker_screen = DockerScreen(action_hooks=None, skip_service_regex=skip_service_regex)
         self.docker_screen.set_docker_compose_files(docker_compose_files or [])
         self.action_hooks = Hooks(self.hook_file or None)
 

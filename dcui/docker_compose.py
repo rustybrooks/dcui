@@ -1,4 +1,5 @@
 import json
+import os
 import subprocess
 
 from yaml import load
@@ -26,32 +27,64 @@ class DockerCompose:
             return command
         else:
             if callback:
-                return stream_stdout_and_stderr(command, callback=callback)
+                return stream_stdout_and_stderr(
+                    command,
+                    callback=callback,
+                    env=os.environ | {"PWD": os.path.dirname(self.docker_file)},
+                )
             else:
                 return subprocess.check_call(command)
 
     def up(self, services=None, detach=False, callback=None, return_command=True):
-        command = self.prefix + ["up"]
+        command = self.prefix + ["up", "--remove-orphans"]
         if detach:
             command.append("-d")
+
         if services:
             command.extend(services)
 
-        return command if return_command else stream_stdout_and_stderr(command, callback=callback)
+        return self.handle_command(command, return_command=return_command, callback=callback)
+        # return (
+        #     command
+        #     if return_command
+        #     else stream_stdout_and_stderr(
+        #         command,
+        #         callback=callback,
+        #         env=os.environ | {"PWD": os.path.dirname(self.docker_file)},
+        #     )
+        # )
 
     def down(self, services=None, callback=None, return_command=True):
         command = self.prefix + ["down"]
         if services:
             command.extend(services)
 
-        return command if return_command else stream_stdout_and_stderr(command, callback=callback)
+        return self.handle_command(command, return_command=return_command, callback=callback)
+        # return (
+        #     command
+        #     if return_command
+        #     else stream_stdout_and_stderr(
+        #         command,
+        #         callback=callback,
+        #         env=os.environ | {"PWD": os.path.dirname(self.docker_file)},
+        #     )
+        # )
 
     def stop(self, services, callback=None, return_command=True):
         command = self.prefix + ["stop"]
         if services:
             command.extend(services)
 
-        return command if return_command else stream_stdout_and_stderr(command, callback=callback)
+        return self.handle_command(command, return_command=return_command, callback=callback)
+        # return (
+        #     command
+        #     if return_command
+        #     else stream_stdout_and_stderr(
+        #         command,
+        #         callback=callback,
+        #         env=os.environ | {"PWD": os.path.dirname(self.docker_file)},
+        #     )
+        # )
 
     def build(self, services=None, with_password=False, callback=None, return_command=True):
         command = self.prefix + ["build", "--progress=plain"]
@@ -60,9 +93,18 @@ class DockerCompose:
             command.extend(services)
 
         if with_password:
-            command += ["--build-arg", f"GITHUB_PASSWORD={get_github_password()}"]
+            command += ["--build-arg"]
 
-        return command if return_command else stream_stdout_and_stderr(command, callback=callback)
+        return self.handle_command(command, return_command=return_command, callback=callback)
+        # return (
+        #     command
+        #     if return_command
+        #     else stream_stdout_and_stderr(
+        #         command,
+        #         callback=callback,
+        #         env=os.environ | {"PWD": os.path.dirname(self.docker_file)},
+        #     )
+        # )
 
     async def ps(self):
         command = self.prefix + ["ps", "--format=json"]
@@ -81,15 +123,43 @@ class DockerCompose:
         if services:
             command.extend(services)
 
-        return command if return_command else stream_stdout_and_stderr(command, callback=callback)
+        return self.handle_command(command, return_command=return_command, callback=callback)
+        # return (
+        #     command
+        #     if return_command
+        #     else stream_stdout_and_stderr(
+        #         command,
+        #         callback=callback,
+        #         env=os.environ | {"PWD": os.path.dirname(self.docker_file)},
+        #     )
+        # )
 
     def shell(self, service, callback=None, return_command=True):
         command = self.prefix + ["exec", service, "sh"]
-        return command if return_command else stream_stdout_and_stderr(command, callback=callback)
+
+        return self.handle_command(command, return_command=return_command, callback=callback)
+        # return (
+        #     command
+        #     if return_command
+        #     else stream_stdout_and_stderr(
+        #         command,
+        #         callback=callback,
+        #         env=os.environ | {"PWD": os.path.dirname(self.docker_file)},
+        #     )
+        # )
 
     def run(self, service, callback=None, return_command=True):
-        command = self.prefix + ["run", "--entrypoint=sh", service]
-        return command if return_command else stream_stdout_and_stderr(command, callback=callback)
+        command = self.prefix + ["run", "--remove-orphans", "--entrypoint=sh", service]
+        return self.handle_command(command, return_command=return_command, callback=callback)
+        # return (
+        #     command
+        #     if return_command
+        #     else stream_stdout_and_stderr(
+        #         command,
+        #         callback=callback,
+        #         env=os.environ | {"PWD": os.path.dirname(self.docker_file)},
+        #     )
+        # )
 
     def exec(self, service, command, callback=None, return_command=True):
         docker_command = self.prefix + ["exec", service]
