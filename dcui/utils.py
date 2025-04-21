@@ -76,6 +76,7 @@ def stream_stdout_and_stderr(
         subprocess_env.update(env)
 
     full_cmd = list(map(str, full_cmd))
+    print("env", env, "spenv", subprocess_env)
     process = subprocess.Popen(
         full_cmd,
         stdin=subprocess.PIPE,

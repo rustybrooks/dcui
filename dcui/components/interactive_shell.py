@@ -26,6 +26,7 @@ class InteractiveShell(Static):
     def __init__(
         self,
         command,
+        env=None,
         exit_command=None,
         exit_message=True,
         focus=True,
@@ -44,6 +45,7 @@ class InteractiveShell(Static):
         self.exit_message = exit_message
         self._focus = focus
         self.process = None
+        self.env = env
 
     async def on_mount(self):
         if self._focus:
@@ -86,6 +88,7 @@ class InteractiveShell(Static):
             stdout=self._tty,
             stderr=self._tty,
             start_new_session=True,
+            env=self.env,
         )
         self._screen = pyte.Screen(self.size[1], self.size[0])
         self._stream = pyte.Stream(self._screen)

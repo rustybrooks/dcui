@@ -94,7 +94,6 @@ class DockerComposeController(DataTable):
 
     def load_docker(self):
         data = self.docker_compose.load_docker_compose(self.docker_file)
-        print(data)
         self.docker_compose_parsed = data
         rows = [
             [self.docker_compose_parsed["services"][x].get("container_name", x), "", ""]
@@ -115,9 +114,7 @@ class DockerComposeController(DataTable):
 
         for el in data:
             service = el["Name"]
-            # service = "-".join(service.split("-")[1:-1])
 
-            print(service, service in row_map, el["State"])
             if service in row_map:
                 self.update_cell(row_map[service], "status", el["State"])
                 self.update_cell(

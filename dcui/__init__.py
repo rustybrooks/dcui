@@ -1,4 +1,5 @@
 #!/usr/bin/env python
+import os
 from typing import Type
 
 from textual import events
@@ -134,9 +135,9 @@ class DockerScreen(Screen):
 
         yield Footer()
 
-    @classmethod
-    def on_key(cls, event: events.Key) -> None:
-        print("on key DS", event)
+    # @classmethod
+    # def on_key(cls, event: events.Key) -> None:
+    #     print("on key DS", event)
 
     def action_swap_panel(self):
         if self.focused.__class__ in [DockerComposePanel, DockerComposeController]:
@@ -225,6 +226,8 @@ class DockerScreen(Screen):
                 self.panel.docker_compose.docker_compose.up(services=[service], detach=True),
                 exit_command=self.single_gated_service_exit(),
                 focus=False,
+                env=os.environ
+                | {"PWD": os.path.dirname(self.panel.docker_compose.docker_file) + "/"},
             )
         )
 
@@ -235,6 +238,8 @@ class DockerScreen(Screen):
                 self.panel.docker_compose.docker_compose.stop(services=[service]),
                 exit_command=self.single_gated_service_exit(),
                 focus=False,
+                env=os.environ
+                | {"PWD": os.path.dirname(self.panel.docker_compose.docker_file) + "/"},
             )
         )
 
@@ -256,6 +261,8 @@ class DockerScreen(Screen):
                 self.panel.docker_compose.docker_compose.down(),
                 exit_command=self.single_gated_service_exit(),
                 focus=False,
+                env=os.environ
+                | {"PWD": os.path.dirname(self.panel.docker_compose.docker_file) + "/"},
             )
         )
 
@@ -267,6 +274,8 @@ class DockerScreen(Screen):
                 self.panel.docker_compose.docker_compose.up(detach=True),
                 exit_command=self.single_gated_service_exit(),
                 focus=False,
+                env=os.environ
+                | {"PWD": os.path.dirname(self.panel.docker_compose.docker_file) + "/"},
             )
         )
         self.action_hooks.execute("post_up")
