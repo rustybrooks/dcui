@@ -1,33 +1,10 @@
 import asyncio
-import ctypes
 import os
-import signal
 import socket
 import subprocess
 import threading
 from contextlib import closing
 from typing import Dict, List, Optional
-
-from dotenv import dotenv_values
-
-# import docker_compose
-
-scriptdir = os.path.dirname(os.path.realpath(__file__))
-basedir = os.path.abspath(os.path.join(scriptdir, ".."))
-peerdir = os.path.abspath(os.path.join(basedir, "..", ".."))
-dirs = {
-    k: os.path.abspath(v)
-    for k, v in {
-        "script": scriptdir,
-        "base": basedir,
-        "data": os.path.join(basedir, "data"),
-        "eis": os.path.join(peerdir, "eis"),
-        "dgraphsync": os.path.join(peerdir, "dgraphessync"),
-        "nodeserver": os.path.join(peerdir, "NodeServer"),
-        "datamodel": os.path.join(peerdir, "datamodel"),
-        "startup_scripts_dir": os.path.join(basedir, "..", "automation", "scripts"),
-    }.items()
-}
 
 
 def check_socket(host, port):
