@@ -85,6 +85,7 @@ class DockerScreen(Screen):
         Binding("ctrl+l", "logs", "Logs all"),
         Binding("ctrl+b", "build", "Build all"),
         Binding("ctrl+right_square_bracket", "next_pane", "Next Pane"),
+        Binding("tab", "next_pane", "Next Pane", show=False),
         Binding(key="escape", action="close_overlay", show=False, description="close overlay"),
         Binding("f2", "split_horizontal", "SplitX", priority=True),
         Binding("f3", "split_vertical", "SplitY", priority=True),

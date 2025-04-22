@@ -75,7 +75,6 @@ class DockerComposeController(DataTable):
         return f"DockerComposeController(name={self.name}, file={self.docker_file})"
 
     def watch_selected(self, selected: bool) -> None:
-        print("watch selected", selected)
         self.set_class(selected, "selected")
         self._clear_caches()
 
@@ -113,7 +112,6 @@ class DockerComposeController(DataTable):
             self.update_cell(k, "status", "")
 
         for el in data:
-            print(data)
             service = el["Service"]
 
             if service in row_map:

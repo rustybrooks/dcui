@@ -71,7 +71,6 @@ class InteractiveShell(Static):
         event.stop()
 
     def on_unmount(self):
-        print("unmount?")
         if self.process:
             print("terminate", self.process.pid, self.process)
             try:
