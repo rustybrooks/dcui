@@ -297,9 +297,21 @@ class DCUIApp(App):
     CSS_PATH = "dcui.css"
 
     BINDINGS = [
-        Binding(key="f1", action="switch_screen('docker')", description="Docker", show=False),
-        Binding(key="f12", action="switch_screen('debug')", description="Debug", show=False),
-        ("q", "quit", "Quit"),
+        Binding(
+            key="f1",
+            action="switch_screen('docker')",
+            description="Docker",
+            show=False,
+            priority=True,
+        ),
+        Binding(
+            key="f12",
+            action="switch_screen('debug')",
+            description="Debug",
+            show=False,
+            priority=True,
+        ),
+        Binding("ctrl+q", "quit", "Quit", priority=True),
     ]
 
     def __init__(

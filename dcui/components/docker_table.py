@@ -3,7 +3,7 @@ from __future__ import annotations
 import re
 
 from textual.reactive import Reactive
-from textual.widgets import DataTable
+from textual.widgets import DataTable, Static
 
 from .logs import Logs
 from ..docker_compose import DockerCompose
@@ -96,7 +96,7 @@ class DockerComposeController(DataTable):
         data = self.docker_compose.load_docker_compose(self.docker_file)
         self.docker_compose_parsed = data
         rows = [
-            [self.docker_compose_parsed["services"][x].get("container_name", x), "", ""]
+            [x, "", ""]
             for x in self.docker_compose_parsed["services"]
             if not self.skip_service_regex
             or not re.search(self.skip_service_regex, x, flags=re.IGNORECASE)
@@ -113,7 +113,8 @@ class DockerComposeController(DataTable):
             self.update_cell(k, "status", "")
 
         for el in data:
-            service = el["Name"]
+            print(data)
+            service = el["Service"]
 
             if service in row_map:
                 self.update_cell(row_map[service], "status", el["State"])
@@ -121,6 +122,7 @@ class DockerComposeController(DataTable):
                     row_map[service],
                     "ports",
                     " ".join(sorted(set([format_port(p) for p in el["Publishers"] or []]))),
+                    update_width=True,
                 )
                 # self.update_cell(row_map[service], "name", el["Name"])
                 # self.update_cell(row_map[service], "command",el["Command"][:20])
